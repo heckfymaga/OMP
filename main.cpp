@@ -1,6 +1,6 @@
 #include <iostream>
 #include <omp.h>
-#include <random>
+
 using namespace std;
 void Task1(){
     int n;
@@ -152,9 +152,38 @@ void Task6(){
         sum += a[i];
     printf("average with reduction = %d\n",sum/100);
 }
-void Task7(){
 
+void Task7() {
+    int a[12], b[12], c[12];
+    omp_set_num_threads(3);
+    #pragma omp parallel
+    {
+        #pragma omp single
+        {
+            printf("Quantity of threads in a first zone = %d\n", omp_get_num_threads());
+        }
+        #pragma omp for
+        for (int i = 0; i < 12; i++) {
+            a[i] = i;
+            printf("thread %d put in a[] value %d\n", omp_get_thread_num(), a[i]);
+            b[i] = 2 * i;
+            printf("thread %d put in b[] value %d\n", omp_get_thread_num(), b[i]);
+        }
+    }
+    omp_set_num_threads(4);
+    #pragma omp parallel
+    {
+        #pragma omp single
+        {
+            printf("Quantity of threads in second zone = %d\n", omp_get_num_threads());
+        }
+        #pragma omp for schedule(dynamic)
+        for (int i = 0; i < 12; i++) {
+            c[i] = a[i] + b[i];
+            printf("thread %d put in a[] value %d\n", omp_get_thread_num(),c[i] );
+        }
+    }
 }
 int main() {
-    Task6();
+    Task7();
 }
