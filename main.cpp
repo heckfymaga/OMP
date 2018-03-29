@@ -152,7 +152,6 @@ void Task6(){
         sum += a[i];
     printf("average with reduction = %d\n",sum/100);
 }
-
 void Task7() {
     int a[12], b[12], c[12];
     omp_set_num_threads(3);
@@ -180,10 +179,63 @@ void Task7() {
         #pragma omp for schedule(dynamic)
         for (int i = 0; i < 12; i++) {
             c[i] = a[i] + b[i];
-            printf("thread %d put in a[] value %d\n", omp_get_thread_num(),c[i] );
+            printf("thread %d put in c[] value %d\n", omp_get_thread_num(),c[i] );
         }
     }
 }
+void Task8(){
+    size_t size = 16000;
+    double start, finish;
+    double a[size], b[size];
+    for(int i=0;i<size;i++){
+        a[i]=i;
+    }
+    b[0] = 0;
+    b[size - 1] = size;
+    start = omp_get_wtime();
+    #pragma omp parallel
+    {
+        #pragma omp for schedule(static)
+        for (int i = 1; i < size - 1; i++) {
+            b[i] = (a[i - 1] + a[i] + a[i + 1]) / 3.0;
+        }
+    }
+    finish = omp_get_wtime();
+    printf("static zone was completed in %f\n",finish - start);
+
+    start = omp_get_wtime();
+    #pragma omp parallel
+    {
+        #pragma omp for schedule(dynamic, 100)
+        for (int i = 1; i < size - 1; i++) {
+            b[i] = (a[i - 1] + a[i] + a[i + 1]) / 3.0;
+        }
+    }
+    finish = omp_get_wtime();
+    printf("dynamic zone was completed in %f\n",finish - start);
+
+    start = omp_get_wtime();
+    #pragma omp parallel
+    {
+        #pragma omp for schedule(guided, 100)
+        for (int i = 1; i < size - 1; i++) {
+            b[i] = (a[i - 1] + a[i] + a[i + 1]) / 3.0;
+        }
+    }
+    finish = omp_get_wtime();
+    printf("guided zone was completed in %f\n",finish - start);
+
+    start = omp_get_wtime();
+    #pragma omp parallel num_threads(8)
+    {
+        #pragma omp for schedule(auto)
+        for (int i = 1; i < size - 1; i++) {
+            b[i] = (a[i - 1] + a[i] + a[i + 1]) / 3.0;
+        }
+    }
+    finish = omp_get_wtime();
+    printf("static zone was completed in %f\n",finish - start);
+}
 int main() {
-    Task7();
+    return 0;
 }
