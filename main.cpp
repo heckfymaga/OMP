@@ -1,5 +1,6 @@
 #include <iostream>
 #include <omp.h>
+#include <random>
 using namespace std;
 void Task1(){
     int n;
@@ -66,9 +67,73 @@ void Task4(){
             }
         }
     }
-    cout<<min<<" "<<max;
+    printf("min a[] = %d max b[] = %d",min,max);
+}
+void Task5(){
+    int d[6][8];
+    for(int i=0;i<6;i++){
+        for(int j=0;j<8;j++){
+            d[i][j]=rand()%10;
+        }
+    }
+    int sum = 0;
+    int min = d[0][0];
+    int max = d[0][0];
+    int counter = 0;
+    #pragma omp parallel
+    {
+        #pragma omp sections
+        {
+            #pragma omp section
+            {
+                #pragma omp parallel for num_threads(6) reduction(+: sum)
+                for(int i=0;i<6;i++){
+                    #pragma omp parallel for
+                    for(int j=0;j<8;j++){
+                        sum+=d[i][j];
+                    }
+                }
+
+            }
+            #pragma omp section
+            {
+                #pragma omp parallel for num_threads(6)
+                for(int i=0;i<6;i++){
+                    #pragma omp parallel for
+                    for(int j=0;j<8;j++){
+                        if(min > d[i][j]){
+                            #pragma omp critical
+                            min = d[i][j];
+                        }
+                        if(max < d[i][j]){
+                            #pragma omp critical
+                            max = d[i][j];
+                        }
+                    }
+                }
+            }
+            #pragma omp section
+            {
+                #pragma omp parallel for num_threads(6) reduction(+: counter)
+                for(int i=0;i<6;i++){
+                    #pragma omp parallel for
+                    for(int j=0;j<8;j++){
+                        if(d[i][j]%3 == 0)
+                            counter++;
+                    }
+                }
+            }
+        }
+    }
+    printf("average = %d\n", sum/48);
+    printf("min = %d max = %d\n", min,max);
+    printf("quantity of numbers which are divided by 3  = %d\n", counter);
+    for(auto &line:d){
+        for(auto item:line){
+            cout<<item<<' ';
+        }
+        cout<<endl;
+    }
 }
 int main() {
-    Task4();
-    return 0;
 }
