@@ -135,5 +135,26 @@ void Task5(){
         cout<<endl;
     }
 }
+void Task6(){
+    int a[100];
+    for(int i=0;i<100;i++){
+        a[i] = rand()%100;
+    }
+    int sum = 0;
+    #pragma omp parallel for
+    for(int i=0;i<100;i++){
+        sum += a[i];
+    }
+    printf("average without reduction = %d\n",sum/100);
+    sum = 0;
+    #pragma omp parallel for reduction(+:sum)
+    for (int i = 0; i < 100; i++)
+        sum += a[i];
+    printf("average with reduction = %d\n",sum/100);
+}
+void Task7(){
+
+}
 int main() {
+    Task6();
 }
