@@ -1,6 +1,7 @@
 #include <iostream>
 #include <omp.h>
-
+#include <random>
+#include <ctime>
 using namespace std;
 void Task1(){
     int n;
@@ -70,10 +71,11 @@ void Task4(){
     printf("min a[] = %d max b[] = %d",min,max);
 }
 void Task5(){
+    std::mt19937 gen(time(0));
     int d[6][8];
     for(int i=0;i<6;i++){
         for(int j=0;j<8;j++){
-            d[i][j]=rand()%10;
+            d[i][j]=(int)gen()%10;
         }
     }
     int sum = 0;
@@ -136,9 +138,10 @@ void Task5(){
     }
 }
 void Task6(){
+    std::mt19937 gen(time(0));
     int a[100];
     for(int i=0;i<100;i++){
-        a[i] = rand()%100;
+        a[i] = (int)gen()%100;
     }
     int sum = 0;
     #pragma omp parallel for
@@ -236,6 +239,55 @@ void Task8(){
     finish = omp_get_wtime();
     printf("static zone was completed in %f\n",finish - start);
 }
-int main() {
+void Task9(const size_t size){
+    std::mt19937 gen(time(0));
+    double start, finish;
+    int matrix[size][size];
+    int vector[size];
+    int result[size];
+    for(auto &line: matrix){
+        for(auto &item: line){
+            item = (int)gen()%10;
+        }
+    }
+    for(auto &item: vector){
+        item = (int)gen()%10;
+    }
+    int sum = 0;
+
+    start = omp_get_wtime();
+    for(int i=0;i<size;i++){
+        sum=0;
+        for(int j=0;j<size;j++){
+            sum += matrix[i][j]*vector[j];
+        }
+        result[i]=sum;
+    }
+    finish = omp_get_wtime();
+    for(auto item: result){
+        cout<<item<<" ";
+    }
+    cout<<endl;
+    printf("Not parallel multiplication take %f seconds\n", (finish - start));
+
+    start = omp_get_wtime();
+    #pragma omp parallel for schedule(static)
+    for(int i=0;i<size;i++){
+        int sum = 0;
+        for(int j=0;j<size;j++){
+            sum += matrix[i][j]*vector[j];
+        }
+        //#pragma omp critical
+        result[i] = sum;
+    }
+    finish = omp_get_wtime();
+    for(auto item: result){
+        cout<<item<<" ";
+    }
+    cout<<endl;
+    printf("Parallel multiplication take %f seconds\n", (finish - start));
+}
+int main(){
+    Task9(1000);
     return 0;
 }
