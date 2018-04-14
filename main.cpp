@@ -287,7 +287,41 @@ void Task9(const size_t size){
     cout<<endl;
     printf("Parallel multiplication take %f seconds\n", (finish - start));
 }
+void Task10(){
+    std::mt19937 gen(time(0));
+    int d[6][8];
+    for(auto &line: d){
+        for(auto &item: line){
+            item = (int)gen()%10;
+        }
+    }
+    for(auto &line: d){
+        for(auto item: line){
+            cout << item <<" ";
+        }
+        cout<<endl;
+    }
+    int min = d[0][0], max = d[0][0];
+    #pragma omp parallel
+    {
+        #pragma omp for
+        for(int i=0;i<6;i++){
+            int lmin = d[i][0];
+            int lmax = d[i][0];
+            for(int j=0;j<8;j++){
+                if(d[i][j]>lmax) lmax = d[i][j];
+                if(d[i][j]<lmin) lmin = d[i][j];
+            }
+            #pragma omp critical
+            {
+                if(lmin < min) min = lmin;
+                if(lmax > max) max = lmax;
+            }
+        }
+    }
+    printf("max = %d, min = %d",max, min);
+}
 int main(){
-    Task9(1000);
+    Task10();
     return 0;
 }
