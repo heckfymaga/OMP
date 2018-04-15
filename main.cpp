@@ -2,13 +2,13 @@
 #include <omp.h>
 #include <random>
 #include <ctime>
+#include <unistd.h>
+
 using namespace std;
 void Task1(){
-    int n;
-    #pragma omp parallel num_threads(8) private(n)
+    #pragma omp parallel num_threads(8)
     {
-        n = omp_get_thread_num();
-        printf("Hello world printed by thread %d out of %d\n", n, omp_get_num_threads());
+        printf("Hello world printed by thread %d out of %d\n", omp_get_thread_num(), omp_get_num_threads());
     }
 }
 void Task2(){
@@ -321,7 +321,76 @@ void Task10(){
     }
     printf("max = %d, min = %d",max, min);
 }
+void Task11(){
+    int a[30];
+    std::mt19937 gen(time(0));
+    for(auto &item: a){
+        item=gen()%10;
+    }
+    for(auto item: a){
+        cout<<item<<" ";
+    }
+    int k=0;
+#pragma omp parallel for
+    for(int i=0;i<30;i++){
+        if(a[i]%9==0){
+            #pragma omp atomic
+            k++;
+        }
+    }
+    printf("\nk = %d",k);
+}
+void Task12(const size_t size){
+    int a[size];
+    std::mt19937 gen(time(0));
+    for(auto &item: a){
+        item=gen()%10;
+    }
+    for(auto item: a){
+        cout<<item<<" ";
+    }
+    int k=0;
+    #pragma omp parallel for
+    for(int i=0;i<size;i++){
+        if(a[i]%7==0)
+        #pragma omp critical
+        {
+            k++;
+        }
+    }
+    printf("\nk = %d",k);
+}
+void Task13dot1(int i){
+#pragma omp parallel num_threads(i)
+    {
+        while(i!=0){
+            if(omp_get_thread_num()==i-1){
+                printf("Hello world printed by thread %d out of %d\n", omp_get_thread_num(), omp_get_num_threads());
+                i--;
+            }
+        }
+
+    }
+}
+void Task13dot2(int i){
+#pragma omp parallel num_threads(i)
+    {
+        double start = omp_get_wtime();
+        sleep(i-omp_get_thread_num());
+        printf("Hello world printed by thread %d out of %d for %f\n", omp_get_thread_num(), omp_get_num_threads(), omp_get_wtime()-start);
+    }
+}
+void Task13dot3(int i){
+    if(i==0)
+        return;
+    #pragma omp parallel num_threads(i)
+    {
+        if(omp_get_thread_num() == (i-1)){
+            printf("Hello world printed by thread %d\n", omp_get_thread_num());
+        }
+    }
+    Task13dot3(i-1);
+}
 int main(){
-    Task10();
     return 0;
 }
